@@ -110,46 +110,4 @@ export async function isAuthenticated() {
   return !!user;
 }
 
-export async function getInterviewsByUser(
-  userId: string
-): Promise<Interview[] | null> {
-  if (!userId) {
-    console.log("getInterviewsByUser called with undefined userId");
-    return null;
-  }
-  const interviews = await db
-    .collection("interviews")
-    .where("userId", "==", userId)
-    .orderBy("createdAt", "desc")
-    .get();
 
-  // console.log("user interviews", interviews.docs);
-
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[];
-}
-
-export async function getLatestInterviews(
-  params: GetLatestInterviewsParams
-): Promise<Interview[] | null> {
-  const { userId, limit = 20 } = params;
-  if (!userId) {
-    console.log("getInterviewsByUser called with undefined userId");
-    return null;
-  }
-
-  const interviews = await db
-    .collection("interviews")
-    .orderBy("createdAt", "desc")
-    .where("finaliazed", "==", true)
-    .where("userId", "!=", userId)
-    .limit(50) // fetch more to allow filtering
-    .get();
-
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[];
-}

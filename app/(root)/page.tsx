@@ -1,18 +1,17 @@
 import InterviewCard from "@/components/InterviewCard";
 import { Button } from "@/components/ui/button";
-import { dummyInterviews } from "@/constants";
+import { getCurrentUser } from "@/lib/actions/auth.actions";
 import {
-  getCurrentUser,
   getInterviewsByUser,
   getLatestInterviews,
-} from "@/lib/actions/auth.actions";
+} from "@/lib/actions/general.action";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 const Page = async () => {
   const user = await getCurrentUser();
-  console.log(user?.id);
+  // console.log(user?.id);
   // console.log("Calling getInterviewsByUser with:", user);
   //we will perform parallel data fetching for more fast and efficient approach
 
@@ -24,7 +23,7 @@ const Page = async () => {
   const hasPastInterview = userInterviews?.length > 0;
   const hasUpcomingInterviews = lastestInterviews?.length > 0;
 
-  console.log(hasUpcomingInterviews);
+  // console.log(hasUpcomingInterviews);
 
   return (
     <>
