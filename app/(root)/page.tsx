@@ -1,11 +1,31 @@
 import InterviewCard from "@/components/InterviewCard";
 import { Button } from "@/components/ui/button";
 import { dummyInterviews } from "@/constants";
+import {
+  getCurrentUser,
+  getInterviewsByUser,
+  getLatestInterviews,
+} from "@/lib/actions/auth.actions";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const Page = () => {
+const Page = async () => {
+  const user = await getCurrentUser();
+  console.log(user?.id);
+  // console.log("Calling getInterviewsByUser with:", user);
+  //we will perform parallel data fetching for more fast and efficient approach
+
+  const [userInterviews, lastestInterviews] = await Promise.all([
+    await getInterviewsByUser(user?.id!),
+    await getLatestInterviews({ userId: user?.id! }),
+  ]);
+
+  const hasPastInterview = userInterviews?.length > 0;
+  const hasUpcomingInterviews = lastestInterviews?.length > 0;
+
+  console.log(hasUpcomingInterviews);
+
   return (
     <>
       <section className="card-cta">
@@ -31,10 +51,10 @@ const Page = () => {
         <h2>Your Interviews</h2>
 
         <div className="interviews-section">
-          {dummyInterviews.map(interview => (
+          {/* {dummyInterviews.map((interview) => (
             <InterviewCard {...interview} key={interview.id} />
-          ))}
-          {/* {hasPastInterviews ? (
+          ))} */}
+          {hasPastInterview ? (
             userInterviews?.map((interview) => (
               <InterviewCard
                 key={interview.id}
@@ -46,9 +66,9 @@ const Page = () => {
                 createdAt={interview.createdAt}
               />
             ))
-          ) : ( */}
-          <p>You haven&apos;t taken any interviews yet</p>
-          {/* )} */}
+          ) : (
+            <p>You haven&apos;t taken any interviews yet</p>
+          )}
         </div>
       </section>
 
@@ -56,11 +76,11 @@ const Page = () => {
         <h2>Take Interviews</h2>
 
         <div className="interviews-section">
-          {dummyInterviews.map(interview => (
-            <InterviewCard {...interview} key={interview.id}/>
-          ))}
-          {/* {hasUpcomingInterviews ? (
-            allInterview?.map((interview) => (
+          {/* {dummyInterviews.map((interview) => (
+            <InterviewCard {...interview} key={interview.id} />
+          ))} */}
+          {hasUpcomingInterviews ? (
+            lastestInterviews?.map((interview) => (
               <InterviewCard
                 key={interview.id}
                 userId={user?.id}
@@ -71,9 +91,9 @@ const Page = () => {
                 createdAt={interview.createdAt}
               />
             ))
-          ) : ( */}
-          <p>There are no interviews available</p>
-          {/* )} */}
+          ) : (
+            <p>There are no interviews available</p>
+          )}
         </div>
       </section>
     </>

@@ -84,27 +84,72 @@ export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = await cookies();
 
   const sessionCookie = cookieStore.get("session")?.value;
-
   if (!sessionCookie) return null;
 
   try {
-    const decoded = await auth.verifySessionCookie(sessionCookie, true);
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
 
-    const user = await db.collection("user").doc(decoded.uid).get();
-
-    if (!user.exists) return null;
+    // get user info from db
+    const userRecord = await db.collection("user").doc(decodedClaims.uid).get();
+    if (!userRecord.exists) return null;
 
     return {
-      ...user.data(),
-      id: user.id,
+      ...userRecord.data(),
+      id: userRecord.id,
     } as User;
   } catch (error) {
     console.log(error);
+
+    // Invalid or expired session
     return null;
   }
 }
 
 export async function isAuthenticated() {
-    const user = getCurrentUser();
-    return !!user;
+  const user = await getCurrentUser();
+  return !!user;
+}
+
+export async function getInterviewsByUser(
+  userId: string
+): Promise<Interview[] | null> {
+  if (!userId) {
+    console.log("getInterviewsByUser called with undefined userId");
+    return null;
+  }
+  const interviews = await db
+    .collection("interviews")
+    .where("userId", "==", userId)
+    .orderBy("createdAt", "desc")
+    .get();
+
+  // console.log("user interviews", interviews.docs);
+
+  return interviews.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Interview[];
+}
+
+export async function getLatestInterviews(
+  params: GetLatestInterviewsParams
+): Promise<Interview[] | null> {
+  const { userId, limit = 20 } = params;
+  if (!userId) {
+    console.log("getInterviewsByUser called with undefined userId");
+    return null;
+  }
+
+  const interviews = await db
+    .collection("interviews")
+    .orderBy("createdAt", "desc")
+    .where("finaliazed", "==", true)
+    .where("userId", "!=", userId)
+    .limit(50) // fetch more to allow filtering
+    .get();
+
+  return interviews.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Interview[];
 }
