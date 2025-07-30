@@ -65,6 +65,21 @@ export async function signIn(params: SignInParams) {
   }
 }
 
+export async function logout() {
+  // Clear the session cookie
+  await removeSetSession();
+
+  return {
+    sucess: true,
+    message: "User logged out",
+  };
+}
+
+export async function removeSetSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete("session");
+}
+
 export async function setSessionCookie(idToken: string) {
   const cookieStore = await cookies();
   const sessionCookie = await auth.createSessionCookie(idToken, {
@@ -109,5 +124,3 @@ export async function isAuthenticated() {
   const user = await getCurrentUser();
   return !!user;
 }
-
-
